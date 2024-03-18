@@ -1,5 +1,8 @@
 # CMake
 **/build
 
+# Doxygen
+**/docs
+
 # vscode
 .vscode

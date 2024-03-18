@@ -15,7 +15,7 @@ else()
 endif()
 
 message(STATUS "Adding files to Cppcheck")
-set(CPPCHECK_SOURCES ${SOURCE_DIRS})
+set(CPPCHECK_SOURCES ${SOURCE_LIST})
 
 add_custom_target(
         cppcheck

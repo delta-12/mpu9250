@@ -24,6 +24,9 @@
 /* Typedefs
  ******************************************************************************/
 
+typedef int16_t Mpu9250_AxisRaw_t;
+typedef double  Mpu9250_AxisCalc_t;
+
 typedef enum
 {
   MPU9250_GYROSCALE_250,  /* +/- 250 DPS */
@@ -48,8 +51,40 @@ typedef enum
 
 typedef struct
 {
+  Mpu9250_AxisRaw_t RawX;
+  Mpu9250_AxisRaw_t RawY;
+  Mpu9250_AxisRaw_t RawZ;
+  Mpu9250_AxisCalc_t CalcX;
+  Mpu9250_AxisCalc_t CalcY;
+  Mpu9250_AxisCalc_t CalcZ;
+} Mpu9250_SensorReading_t;
+
+typedef struct
+{
+  uint16_t DcBiasX;
+  uint16_t DcBiasY;
+  uint16_t DcBiasZ;
+  bool SelfTest;
+  Mpu9250_GyroScale_t Scale;
+  /* TODO Fchoice_b */
+} Mpu9250_GyroConfig_t;
+
+typedef struct
+{
+  bool SelfTest;
+  Mpu9250_AccelScale_t Scale;
+  /* TODO Fchoice_b */
+  /* TODO A_DLPFCFG */
+  /* TODO Low Power Accelerometer ODR Control */
+  /* TODO Wake-on Motion Threshold */
+} Mpu9250_AccelConfig_t;
+
+typedef struct
+{
   bool (*Write)(const MPU9250_RegisterAddress_t, const uint8_t *const, const size_t);
   bool (*Read)(const MPU9250_RegisterAddress_t, uint8_t *const, const size_t);
+  Mpu9250_GyroConfig_t GyroConfig;
+  Mpu9250_AccelConfig_t AccelConfig;
 } Mpu9250_Handle_t;
 
 /* Function Prototypes

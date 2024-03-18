@@ -30,7 +30,7 @@
 #define MPU9250_ZG_OFFSET_L        0x18U
 #define MPU9250_SMPLRT_DIV         0x19U
 #define MPU9250_CONFIG             0x1AU
-#define MPU9250_GYRO_CONFI         0x1BU
+#define MPU9250_GYRO_CONFIG        0x1BU
 #define MPU9250_ACCEL_CONFIG       0x1CU
 #define MPU9250_ACCEL_CONFIG_2     0x1DU
 #define MPU9250_LP_ACCEL_ODR       0x1EU
@@ -116,6 +116,19 @@
 #define MPU9250_YA_OFFSET_L        0x7BU
 #define MPU9250_ZA_OFFSET_H        0x7DU
 #define MPU9250_ZA_OFFSET_L        0x7EU
+
+#define MPU9250_XGYRO_CTEN  7U
+#define MPU9250_YGYRO_CTEN  6U
+#define MPU9250_ZGYRO_CTEN  5U
+#define MPU9250_GYRO_FS_SEL 3U
+#define MPU9250_FCHOICE_B   0U
+
+#define MPU9250_AX_ST_EN        7U
+#define MPU9250_AY_ST_EN        6U
+#define MPU9250_AZ_ST_EN        5U
+#define MPU9250_ACCEL_FS_SEL    3U
+#define MPU9250_ACCEL_FCHOICE_B 3U
+#define MPU9250_A_DLPFCFG       0U
 
 /* Typedefs
  ******************************************************************************/

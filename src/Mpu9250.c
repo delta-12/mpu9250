@@ -100,6 +100,27 @@ static inline bool Mpu9250_ApplyGyroConfig(const Mpu9250_Handle_t *const handle)
   return handle->Write(MPU9250_GYRO_CONFIG, &data, MPU9250_SIZE_BYTES_1);
 }
 
+bool Mpu9250_GyroRead(Mpu9250_Handle_t *const handle, Mpu9250_SensorReading_t *const sensorReading)
+{
+  return false;
+}
+
+bool Mpu9250_AccelRead(Mpu9250_Handle_t *const handle, Mpu9250_SensorReading_t *const sensorReading)
+{
+  bool read = false;
+
+  if (handle != NULL && sensorReading != NULL)
+  {
+    handle->Read(MPU9250_ACCEL_XOUT_H, (uint8_t *)(&sensorReading->RawX), MPU9250_SIZE_BYTES_2);
+    handle->Read(MPU9250_ACCEL_YOUT_H, (uint8_t *)(&sensorReading->RawY), MPU9250_SIZE_BYTES_2);
+    handle->Read(MPU9250_ACCEL_ZOUT_H, (uint8_t *)(&sensorReading->RawZ), MPU9250_SIZE_BYTES_2);
+
+    read = true;
+  }
+
+  return read;
+}
+
 static inline bool Mpu9250_ApplyAccelConfig(const Mpu9250_Handle_t *const handle)
 {
   /* TODO set Fchoice_b */

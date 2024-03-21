@@ -25,6 +25,7 @@
  ******************************************************************************/
 
 typedef int16_t Mpu9250_AxisRaw_t;
+typedef double  Mpu9250_ScaleFactor_t;
 typedef double  Mpu9250_AxisCalc_t;
 
 typedef enum
@@ -71,8 +72,12 @@ typedef struct
 
 typedef struct
 {
+  uint16_t DcBiasX;
+  uint16_t DcBiasY;
+  uint16_t DcBiasZ;
   bool SelfTest;
   Mpu9250_AccelScale_t Scale;
+  Mpu9250_ScaleFactor_t ScaleFactor;
   /* TODO Fchoice_b */
   /* TODO A_DLPFCFG */
   /* TODO Low Power Accelerometer ODR Control */

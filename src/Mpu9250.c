@@ -41,12 +41,13 @@ bool Mpu9250_Init(Mpu9250_Handle_t *const handle, bool (*write)(const MPU9250_Re
     uint8_t data = 0U;
     handle->Write(MPU9250_SMPLRT_DIV, &data, MPU9250_SIZE_BYTES_1);
     handle->Write(MPU9250_CONFIG, &data, MPU9250_SIZE_BYTES_1);
+    handle->Write(MPU9250_PWR_MGMT_1, &data, MPU9250_SIZE_BYTES_1);
 
     handle->GyroConfig.DcBiasX = 0U;
     handle->GyroConfig.DcBiasY = 0U;
     handle->GyroConfig.DcBiasZ = 0U;
     handle->GyroConfig.SelfTest = false;
-    handle->GyroConfig.Scale = MPU9250_GYROSCALE_250;
+    handle->GyroConfig.Scale = MPU9250_GYROSCALE_500;
     /* TODO Fchoice_b */
 
     handle->AccelConfig.SelfTest = false;
@@ -102,7 +103,18 @@ static inline bool Mpu9250_ApplyGyroConfig(const Mpu9250_Handle_t *const handle)
 
 bool Mpu9250_GyroRead(Mpu9250_Handle_t *const handle, Mpu9250_SensorReading_t *const sensorReading)
 {
-  return false;
+  bool read = false;
+
+  if (handle != NULL && sensorReading != NULL)
+  {
+    handle->Read(MPU9250_GYRO_XOUT_H, (uint8_t *)(&sensorReading->RawX), MPU9250_SIZE_BYTES_2);
+    handle->Read(MPU9250_GYRO_YOUT_H, (uint8_t *)(&sensorReading->RawY), MPU9250_SIZE_BYTES_2);
+    handle->Read(MPU9250_GYRO_ZOUT_H, (uint8_t *)(&sensorReading->RawZ), MPU9250_SIZE_BYTES_2);
+
+    read = true;
+  }
+
+  return read;
 }
 
 bool Mpu9250_AccelRead(Mpu9250_Handle_t *const handle, Mpu9250_SensorReading_t *const sensorReading)

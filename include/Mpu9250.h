@@ -19,14 +19,15 @@
 /* Defines
  ******************************************************************************/
 
-#define MPU2950_I2C_ADDR 0x68U
+#define MPU2950_I2C_ADDR (0x68U << 1U)
 
 /* Typedefs
  ******************************************************************************/
 
-typedef int16_t Mpu9250_AxisRaw_t;
-typedef double  Mpu9250_ScaleFactor_t;
-typedef double  Mpu9250_AxisCalc_t;
+typedef int16_t           Mpu9250_AxisRaw_t;
+typedef Mpu9250_AxisRaw_t Mpu9250_DcBias_t;
+typedef double            Mpu9250_ScaleFactor_t;
+typedef double            Mpu9250_AxisCalc_t;
 
 typedef enum
 {
@@ -62,9 +63,9 @@ typedef struct
 
 typedef struct
 {
-  uint16_t DcBiasX;
-  uint16_t DcBiasY;
-  uint16_t DcBiasZ;
+  Mpu9250_DcBias_t DcBiasX;
+  Mpu9250_DcBias_t DcBiasY;
+  Mpu9250_DcBias_t DcBiasZ;
   bool SelfTest;
   Mpu9250_GyroScale_t Scale;
   /* TODO Fchoice_b */
@@ -72,9 +73,9 @@ typedef struct
 
 typedef struct
 {
-  uint16_t DcBiasX;
-  uint16_t DcBiasY;
-  uint16_t DcBiasZ;
+  Mpu9250_DcBias_t DcBiasX;
+  Mpu9250_DcBias_t DcBiasY;
+  Mpu9250_DcBias_t DcBiasZ;
   bool SelfTest;
   Mpu9250_AccelScale_t Scale;
   Mpu9250_ScaleFactor_t ScaleFactor;
@@ -97,7 +98,9 @@ typedef struct
 
 bool Mpu9250_Init(Mpu9250_Handle_t *const handle, bool (*write)(const MPU9250_RegisterAddress_t, const uint8_t *const, const size_t), bool (*read)(const MPU9250_RegisterAddress_t, uint8_t *const, const size_t));
 bool Mpu9250_WhoAmI(const Mpu9250_Handle_t *const handle);
-bool Mpu9250_GyroRead(Mpu9250_Handle_t *const handle, Mpu9250_SensorReading_t *const sensorReading);
-bool Mpu9250_AccelRead(Mpu9250_Handle_t *const handle, Mpu9250_SensorReading_t *const sensorReading);
+bool Mpu9250_Calibrate(Mpu9250_Handle_t *const handle);
+bool Mpu9250_Available(const Mpu9250_Handle_t *const handle);
+bool Mpu9250_GyroRead(const Mpu9250_Handle_t *const handle, Mpu9250_SensorReading_t *const sensorReading);
+bool Mpu9250_AccelRead(const Mpu9250_Handle_t *const handle, Mpu9250_SensorReading_t *const sensorReading);
 
 #endif

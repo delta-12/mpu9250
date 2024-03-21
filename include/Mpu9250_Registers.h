@@ -130,6 +130,8 @@
 #define MPU9250_ACCEL_FCHOICE_B 3U
 #define MPU9250_A_DLPFCFG       0U
 
+#define MPU9250_RAW_DATA_RDY_INT 0U
+
 /* Typedefs
  ******************************************************************************/
 

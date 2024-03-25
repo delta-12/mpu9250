@@ -57,8 +57,9 @@ bool Mpu9250_Init(Mpu9250_Handle_t *const handle, bool (*write)(const MPU9250_Re
 
     /* TODO configure (see SMPLRT_DIV and CONFIG) */
     uint8_t data = 0U;
-    handle->Write(MPU9250_SMPLRT_DIV, &data, MPU9250_SIZE_BYTES_1);
-    handle->Write(MPU9250_CONFIG, &data, MPU9250_SIZE_BYTES_1);
+    // handle->Write(MPU9250_SMPLRT_DIV, &data, MPU9250_SIZE_BYTES_1);
+    // handle->Write(MPU9250_CONFIG, &data, MPU9250_SIZE_BYTES_1);
+    data = ((MPU9250_BIT << MPU_H_RESET) & MPU9250_BYTE_MASK);
     handle->Write(MPU9250_PWR_MGMT_1, &data, MPU9250_SIZE_BYTES_1);
 
     handle->GyroConfig.DcBiasX = 0U;

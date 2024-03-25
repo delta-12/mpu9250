@@ -68,6 +68,7 @@ typedef struct
   Mpu9250_DcBias_t DcBiasZ;
   bool SelfTest;
   Mpu9250_GyroScale_t Scale;
+  Mpu9250_ScaleFactor_t ScaleFactor;
   /* TODO Fchoice_b */
 } Mpu9250_GyroConfig_t;
 

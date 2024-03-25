@@ -19,12 +19,17 @@
 #define MPU9250_BYTE_MASK              0xFFU
 #define MPU9250_WHO_AM_I_DEFAULT_VALUE 0x71U
 
-#define MPU9250_ACCEL_SCALE_FACTOR_250  16384.0
-#define MPU9250_ACCEL_SCALE_FACTOR_500  8192.0
-#define MPU9250_ACCEL_SCALE_FACTOR_1000 4096.0
-#define MPU9250_ACCEL_SCALE_FACTOR_2000 2048.0
-
 #define MPU9250_CALIBRATION_POINTS 1500U
+
+#define MPU9250_ACCEL_SCALE_FACTOR_2G  16384.0
+#define MPU9250_ACCEL_SCALE_FACTOR_4G  8192.0
+#define MPU9250_ACCEL_SCALE_FACTOR_8G  4096.0
+#define MPU9250_ACCEL_SCALE_FACTOR_16G 2048.0
+
+#define MPU9250_GYRO_SCALE_FACTOR_250DPS  131.072
+#define MPU9250_GYRO_SCALE_FACTOR_500DPS  65.536
+#define MPU9250_GYRO_SCALE_FACTOR_1000DPS 32.768
+#define MPU9250_GYRO_SCALE_FACTOR_2000DPS 16.384
 
 /* Function Prototypes
  ******************************************************************************/
@@ -57,6 +62,9 @@ bool Mpu9250_Init(Mpu9250_Handle_t *const handle, bool (*write)(const MPU9250_Re
     handle->GyroConfig.Scale = MPU9250_GYROSCALE_250;
     /* TODO Fchoice_b */
 
+    handle->AccelConfig.DcBiasX = 0U;
+    handle->AccelConfig.DcBiasY = 0U;
+    handle->AccelConfig.DcBiasZ = 0U;
     handle->AccelConfig.SelfTest = false;
     handle->AccelConfig.Scale = MPU9250_ACCELSCALE_2;
     /* TODO Fchoice_b */
@@ -174,7 +182,9 @@ bool Mpu9250_GyroRead(const Mpu9250_Handle_t *const handle, Mpu9250_SensorReadin
         handle->Read(MPU9250_GYRO_YOUT_H, (uint8_t *)(&sensorReading->RawY), MPU9250_SIZE_BYTES_2) &&
         handle->Read(MPU9250_GYRO_ZOUT_H, (uint8_t *)(&sensorReading->RawZ), MPU9250_SIZE_BYTES_2))
     {
-      /* TODO calculated values */
+      sensorReading->CalcX = sensorReading->RawX / handle->GyroConfig.ScaleFactor;
+      sensorReading->CalcY = sensorReading->RawY / handle->GyroConfig.ScaleFactor;
+      sensorReading->CalcZ = sensorReading->RawZ / handle->GyroConfig.ScaleFactor;
 
       read = true;
     }
@@ -218,7 +228,24 @@ static inline bool Mpu9250_ApplyGyroConfig(Mpu9250_Handle_t *const handle)
     data |= (MPU9250_BIT << MPU9250_ZGYRO_CTEN) & MPU9250_BYTE_MASK;
   }
 
-  /* TODO set gyro scale factor */
+  switch (handle->GyroConfig.Scale)
+  {
+  case MPU9250_GYROSCALE_250:
+    handle->GyroConfig.ScaleFactor = MPU9250_GYRO_SCALE_FACTOR_250DPS;
+    break;
+  case MPU9250_GYROSCALE_500:
+    handle->GyroConfig.ScaleFactor = MPU9250_GYRO_SCALE_FACTOR_500DPS;
+    break;
+  case MPU9250_GYROSCALE_1000:
+    handle->GyroConfig.ScaleFactor = MPU9250_GYRO_SCALE_FACTOR_1000DPS;
+    break;
+  case MPU9250_GYROSCALE_2000:
+    handle->GyroConfig.ScaleFactor = MPU9250_GYRO_SCALE_FACTOR_2000DPS;
+    break;
+  default:
+    handle->GyroConfig.ScaleFactor = MPU9250_GYRO_SCALE_FACTOR_250DPS;
+    break;
+  }
 
   return handle->Write(MPU9250_GYRO_CONFIG, &data, MPU9250_SIZE_BYTES_1);
 }
@@ -239,20 +266,20 @@ static inline bool Mpu9250_ApplyAccelConfig(Mpu9250_Handle_t *const handle)
 
   switch (handle->AccelConfig.Scale)
   {
-  case MPU9250_GYROSCALE_250:
-    handle->AccelConfig.ScaleFactor = MPU9250_ACCEL_SCALE_FACTOR_250;
+  case MPU9250_ACCELSCALE_2:
+    handle->AccelConfig.ScaleFactor = MPU9250_ACCEL_SCALE_FACTOR_2G;
     break;
-  case MPU9250_GYROSCALE_500:
-    handle->AccelConfig.ScaleFactor = MPU9250_ACCEL_SCALE_FACTOR_500;
+  case MPU9250_ACCELSCALE_4:
+    handle->AccelConfig.ScaleFactor = MPU9250_ACCEL_SCALE_FACTOR_4G;
     break;
-  case MPU9250_GYROSCALE_1000:
-    handle->AccelConfig.ScaleFactor = MPU9250_ACCEL_SCALE_FACTOR_1000;
+  case MPU9250_ACCELSCALE_8:
+    handle->AccelConfig.ScaleFactor = MPU9250_ACCEL_SCALE_FACTOR_8G;
     break;
-  case MPU9250_GYROSCALE_2000:
-    handle->AccelConfig.ScaleFactor = MPU9250_ACCEL_SCALE_FACTOR_2000;
+  case MPU9250_ACCELSCALE_16:
+    handle->AccelConfig.ScaleFactor = MPU9250_ACCEL_SCALE_FACTOR_16G;
     break;
   default:
-    handle->AccelConfig.ScaleFactor = MPU9250_ACCEL_SCALE_FACTOR_250;
+    handle->AccelConfig.ScaleFactor = MPU9250_ACCEL_SCALE_FACTOR_2G;
     break;
   }
 

@@ -13,10 +13,12 @@
 /* Defines
  ******************************************************************************/
 
-#define MPU9250_SIZE_BYTES_1           1UL
-#define MPU9250_SIZE_BYTES_2           2UL
-#define MPU9250_BIT                    0x01U
-#define MPU9250_BYTE_MASK              0xFFU
+#define MPU9250_SIZE_BYTES_1    1UL
+#define MPU9250_SIZE_BYTES_2    2UL
+#define MPU9250_BIT             0x01U
+#define MPU9250_BYTE_MASK       0xFFU
+#define MPU9250_HIGH_BYTE_SHIFT 8U
+
 #define MPU9250_WHO_AM_I_DEFAULT_VALUE 0x71U
 
 #define MPU9250_CALIBRATION_POINTS 1500U
@@ -31,17 +33,32 @@
 #define MPU9250_GYRO_SCALE_FACTOR_1000DPS 32.768
 #define MPU9250_GYRO_SCALE_FACTOR_2000DPS 16.384
 
+/* Typedefs
+ ******************************************************************************/
+
+typedef enum
+{
+  MPU9250_SENSORDATABYTE_0,
+  MPU9250_SENSORDATABYTE_1,
+  MPU9250_SENSORDATABYTE_2,
+  MPU9250_SENSORDATABYTE_3,
+  MPU9250_SENSORDATABYTE_4,
+  MPU9250_SENSORDATABYTE_5
+} Mpu9250_SensorDataByte_t;
+
 /* Globals
  ******************************************************************************/
 
-static double Mpu9250_AccelScaleFactorLut[] = {MPU9250_ACCEL_SCALE_FACTOR_2G, MPU9250_ACCEL_SCALE_FACTOR_4G, MPU9250_ACCEL_SCALE_FACTOR_8G, MPU9250_ACCEL_SCALE_FACTOR_16G};
-static double Mpu9250_GyroScaleFactorLut[] = {MPU9250_GYRO_SCALE_FACTOR_250DPS, MPU9250_GYRO_SCALE_FACTOR_500DPS, MPU9250_GYRO_SCALE_FACTOR_1000DPS, MPU9250_GYRO_SCALE_FACTOR_2000DPS};
+static Mpu9250_ScaleFactor_t Mpu9250_AccelScaleFactorLut[] = {MPU9250_ACCEL_SCALE_FACTOR_2G, MPU9250_ACCEL_SCALE_FACTOR_4G, MPU9250_ACCEL_SCALE_FACTOR_8G, MPU9250_ACCEL_SCALE_FACTOR_16G};
+static Mpu9250_ScaleFactor_t Mpu9250_GyroScaleFactorLut[] = {MPU9250_GYRO_SCALE_FACTOR_250DPS, MPU9250_GYRO_SCALE_FACTOR_500DPS, MPU9250_GYRO_SCALE_FACTOR_1000DPS, MPU9250_GYRO_SCALE_FACTOR_2000DPS};
 
 /* Function Prototypes
  ******************************************************************************/
 
 static inline bool Mpu9250_ApplyGyroConfig(Mpu9250_Handle_t *const handle);
 static inline bool Mpu9250_ApplyAccelConfig(Mpu9250_Handle_t *const handle);
+static inline void Mpu9250_SetRawSensorReading(Mpu9250_SensorReading_t *const sensorReading, const uint8_t *const sensorData, const Mpu9250_DcBias_t biasX, const Mpu9250_DcBias_t biasY, const Mpu9250_DcBias_t biasZ);
+static inline void Mpu9250_SetCalcSensorReading(Mpu9250_SensorReading_t *const sensorReading, const Mpu9250_ScaleFactor_t scaleFactor);
 
 /* Function Definitions
  ******************************************************************************/
@@ -57,9 +74,11 @@ bool Mpu9250_Init(Mpu9250_Handle_t *const handle, bool (*write)(const MPU9250_Re
 
     /* TODO configure (see SMPLRT_DIV and CONFIG) */
     uint8_t data = 0U;
-    // handle->Write(MPU9250_SMPLRT_DIV, &data, MPU9250_SIZE_BYTES_1);
-    // handle->Write(MPU9250_CONFIG, &data, MPU9250_SIZE_BYTES_1);
-    data = ((MPU9250_BIT << MPU_H_RESET) & MPU9250_BYTE_MASK);
+    handle->Write(MPU9250_SMPLRT_DIV, &data, MPU9250_SIZE_BYTES_1);
+    handle->Write(MPU9250_CONFIG, &data, MPU9250_SIZE_BYTES_1);
+
+    /* TODO verify reset */
+    data = (MPU9250_BIT << MPU_H_RESET) & MPU9250_BYTE_MASK;
     handle->Write(MPU9250_PWR_MGMT_1, &data, MPU9250_SIZE_BYTES_1);
 
     handle->GyroConfig.DcBiasX = 0U;
@@ -89,6 +108,34 @@ bool Mpu9250_Init(Mpu9250_Handle_t *const handle, bool (*write)(const MPU9250_Re
   return init;
 }
 
+bool Mpu9250_SetGyroScale(Mpu9250_Handle_t *const handle, const Mpu9250_GyroScale_t scale)
+{
+  bool scaled = false;
+
+  if (handle != NULL)
+  {
+    handle->GyroConfig.Scale = scale;
+
+    scaled = Mpu9250_ApplyGyroConfig(handle);
+  }
+
+  return scaled;
+}
+
+bool Mpu9250_SetAccelScale(Mpu9250_Handle_t *const handle, const Mpu9250_AccelScale_t scale)
+{
+  bool scaled = false;
+
+  if (handle != NULL)
+  {
+    handle->AccelConfig.Scale = scale;
+
+    scaled = Mpu9250_ApplyAccelConfig(handle);
+  }
+
+  return scaled;
+}
+
 bool Mpu9250_WhoAmI(const Mpu9250_Handle_t *const handle)
 {
   bool id = false;
@@ -112,7 +159,7 @@ bool Mpu9250_Calibrate(Mpu9250_Handle_t *const handle)
 
   if (handle != NULL)
   {
-    Mpu9250_SensorReading_t sensorReading = {0};
+    Mpu9250_SensorReading_t sensorReading = {0U};
     int32_t gx = 0;
     int32_t gy = 0;
     int32_t gz = 0;
@@ -134,9 +181,9 @@ bool Mpu9250_Calibrate(Mpu9250_Handle_t *const handle)
         ax += sensorReading.RawX;
         ay += sensorReading.RawY;
         az += (sensorReading.RawZ - (int16_t)handle->AccelConfig.ScaleFactor);
-      }
 
-      i++;
+        i++;
+      }
 
       /* TODO prevent deadlooping */
     }
@@ -188,18 +235,12 @@ bool Mpu9250_GyroRead(const Mpu9250_Handle_t *const handle, Mpu9250_SensorReadin
 
   if (handle != NULL && sensorReading != NULL)
   {
-    if (handle->Read(MPU9250_GYRO_XOUT_H, (uint8_t *)(&sensorReading->RawX), MPU9250_SIZE_BYTES_2) &&
-        handle->Read(MPU9250_GYRO_YOUT_H, (uint8_t *)(&sensorReading->RawY), MPU9250_SIZE_BYTES_2) &&
-        handle->Read(MPU9250_GYRO_ZOUT_H, (uint8_t *)(&sensorReading->RawZ), MPU9250_SIZE_BYTES_2))
-    {
-      /* TODO remove after offsets have been properly set */
-      sensorReading->RawX -= handle->GyroConfig.DcBiasX;
-      sensorReading->RawY -= handle->GyroConfig.DcBiasY;
-      sensorReading->RawZ -= handle->GyroConfig.DcBiasZ;
+    uint8_t sensorData[MPU9250_SENSOR_DATA_SIZE];
 
-      sensorReading->CalcX = sensorReading->RawX / handle->GyroConfig.ScaleFactor;
-      sensorReading->CalcY = sensorReading->RawY / handle->GyroConfig.ScaleFactor;
-      sensorReading->CalcZ = sensorReading->RawZ / handle->GyroConfig.ScaleFactor;
+    if (handle->Read(MPU9250_GYRO_XOUT_H, sensorData, MPU9250_SENSOR_DATA_SIZE))
+    {
+      Mpu9250_SetRawSensorReading(sensorReading, sensorData, handle->GyroConfig.DcBiasX, handle->GyroConfig.DcBiasY, handle->GyroConfig.DcBiasZ);
+      Mpu9250_SetCalcSensorReading(sensorReading, handle->GyroConfig.ScaleFactor);
 
       read = true;
     }
@@ -214,18 +255,12 @@ bool Mpu9250_AccelRead(const Mpu9250_Handle_t *const handle, Mpu9250_SensorReadi
 
   if (handle != NULL && sensorReading != NULL)
   {
-    if (handle->Read(MPU9250_ACCEL_XOUT_H, (uint8_t *)(&sensorReading->RawX), MPU9250_SIZE_BYTES_2) &&
-        handle->Read(MPU9250_ACCEL_YOUT_H, (uint8_t *)(&sensorReading->RawY), MPU9250_SIZE_BYTES_2) &&
-        handle->Read(MPU9250_ACCEL_ZOUT_H, (uint8_t *)(&sensorReading->RawZ), MPU9250_SIZE_BYTES_2))
-    {
-      /* TODO remove after offsets have been properly set */
-      sensorReading->RawX -= handle->AccelConfig.DcBiasX;
-      sensorReading->RawY -= handle->AccelConfig.DcBiasY;
-      sensorReading->RawZ -= handle->AccelConfig.DcBiasZ;
+    uint8_t sensorData[MPU9250_SENSOR_DATA_SIZE];
 
-      sensorReading->CalcX = sensorReading->RawX / handle->AccelConfig.ScaleFactor;
-      sensorReading->CalcY = sensorReading->RawY / handle->AccelConfig.ScaleFactor;
-      sensorReading->CalcZ = sensorReading->RawZ / handle->AccelConfig.ScaleFactor;
+    if (handle->Read(MPU9250_ACCEL_XOUT_H, sensorData, MPU9250_SENSOR_DATA_SIZE))
+    {
+      Mpu9250_SetRawSensorReading(sensorReading, sensorData, handle->AccelConfig.DcBiasX, handle->AccelConfig.DcBiasY, handle->AccelConfig.DcBiasZ);
+      Mpu9250_SetCalcSensorReading(sensorReading, handle->AccelConfig.ScaleFactor);
 
       read = true;
     }
@@ -271,4 +306,23 @@ static inline bool Mpu9250_ApplyAccelConfig(Mpu9250_Handle_t *const handle)
 
   /* TODO extend data to uint16_t and write to ACCELC_CONFIG and ACCEL_CONFIG_2 in single operation */
   return handle->Write(MPU9250_ACCEL_CONFIG, &data, MPU9250_SIZE_BYTES_1);
+}
+
+static inline void Mpu9250_SetRawSensorReading(Mpu9250_SensorReading_t *const sensorReading, const uint8_t *const sensorData, const Mpu9250_DcBias_t biasX, const Mpu9250_DcBias_t biasY, const Mpu9250_DcBias_t biasZ)
+{
+  sensorReading->RawX = (sensorData[MPU9250_SENSORDATABYTE_0] << MPU9250_HIGH_BYTE_SHIFT) | sensorData[MPU9250_SENSORDATABYTE_1];
+  sensorReading->RawY = (sensorData[MPU9250_SENSORDATABYTE_2] << MPU9250_HIGH_BYTE_SHIFT) | sensorData[MPU9250_SENSORDATABYTE_3];
+  sensorReading->RawZ = (sensorData[MPU9250_SENSORDATABYTE_3] << MPU9250_HIGH_BYTE_SHIFT) | sensorData[MPU9250_SENSORDATABYTE_5];
+
+  /* TODO remove after offsets have been properly set */
+  sensorReading->RawX -= biasX;
+  sensorReading->RawY -= biasY;
+  sensorReading->RawZ -= biasZ;
+}
+
+static inline void Mpu9250_SetCalcSensorReading(Mpu9250_SensorReading_t *const sensorReading, const Mpu9250_ScaleFactor_t scaleFactor)
+{
+  sensorReading->CalcX = sensorReading->RawX / scaleFactor;
+  sensorReading->CalcY = sensorReading->RawY / scaleFactor;
+  sensorReading->CalcZ = sensorReading->RawZ / scaleFactor;
 }

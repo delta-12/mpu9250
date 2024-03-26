@@ -19,7 +19,8 @@
 /* Defines
  ******************************************************************************/
 
-#define MPU2950_I2C_ADDR (0x68U << 1U)
+#define MPU9250_I2C_ADDR         (0x68U << 1U)
+#define MPU9250_SENSOR_DATA_SIZE 6U
 
 /* Typedefs
  ******************************************************************************/
@@ -98,6 +99,8 @@ typedef struct
  ******************************************************************************/
 
 bool Mpu9250_Init(Mpu9250_Handle_t *const handle, bool (*write)(const MPU9250_RegisterAddress_t, const uint8_t *const, const size_t), bool (*read)(const MPU9250_RegisterAddress_t, uint8_t *const, const size_t));
+bool Mpu9250_SetGyroScale(Mpu9250_Handle_t *const handle, const Mpu9250_GyroScale_t scale);
+bool Mpu9250_SetAccelScale(Mpu9250_Handle_t *const handle, const Mpu9250_AccelScale_t scale);
 bool Mpu9250_WhoAmI(const Mpu9250_Handle_t *const handle);
 bool Mpu9250_Calibrate(Mpu9250_Handle_t *const handle);
 bool Mpu9250_Available(const Mpu9250_Handle_t *const handle);

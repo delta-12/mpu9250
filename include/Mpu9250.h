@@ -89,7 +89,7 @@ typedef struct
 
 typedef struct
 {
-  bool (*Write)(const MPU9250_RegisterAddress_t, const uint8_t *const, const size_t);
+  bool (*Write)(const MPU9250_RegisterAddress_t, uint8_t *const, const size_t);
   bool (*Read)(const MPU9250_RegisterAddress_t, uint8_t *const, const size_t);
   Mpu9250_GyroConfig_t GyroConfig;
   Mpu9250_AccelConfig_t AccelConfig;
@@ -98,7 +98,7 @@ typedef struct
 /* Function Prototypes
  ******************************************************************************/
 
-bool Mpu9250_Init(Mpu9250_Handle_t *const handle, bool (*write)(const MPU9250_RegisterAddress_t, const uint8_t *const, const size_t), bool (*read)(const MPU9250_RegisterAddress_t, uint8_t *const, const size_t));
+bool Mpu9250_Init(Mpu9250_Handle_t *const handle, bool (*write)(const MPU9250_RegisterAddress_t, uint8_t *const, const size_t), bool (*read)(const MPU9250_RegisterAddress_t, uint8_t *const, const size_t));
 bool Mpu9250_SetGyroScale(Mpu9250_Handle_t *const handle, const Mpu9250_GyroScale_t scale);
 bool Mpu9250_SetAccelScale(Mpu9250_Handle_t *const handle, const Mpu9250_AccelScale_t scale);
 bool Mpu9250_WhoAmI(const Mpu9250_Handle_t *const handle);

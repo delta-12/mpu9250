@@ -63,7 +63,7 @@ static inline void Mpu9250_SetCalcSensorReading(Mpu9250_SensorReading_t *const s
 /* Function Definitions
  ******************************************************************************/
 
-bool Mpu9250_Init(Mpu9250_Handle_t *const handle, bool (*write)(const MPU9250_RegisterAddress_t, const uint8_t *const, const size_t), bool (*read)(const MPU9250_RegisterAddress_t, uint8_t *const, const size_t))
+bool Mpu9250_Init(Mpu9250_Handle_t *const handle, bool (*write)(const MPU9250_RegisterAddress_t, uint8_t *const, const size_t), bool (*read)(const MPU9250_RegisterAddress_t, uint8_t *const, const size_t))
 {
   bool init = false;
 

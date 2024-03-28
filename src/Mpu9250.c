@@ -80,7 +80,7 @@ bool Mpu9250_Init(Mpu9250_Handle_t *const handle, bool (*write)(const MPU9250_Re
       handle->Write(MPU9250_CONFIG, &data, MPU9250_SIZE_BYTES_1);
 
       /* TODO verify reset */
-      data = (MPU9250_BIT << MPU_H_RESET) & MPU9250_BYTE_MASK;
+      // data = (MPU9250_BIT << MPU_H_RESET) & MPU9250_BYTE_MASK;
       handle->Write(MPU9250_PWR_MGMT_1, &data, MPU9250_SIZE_BYTES_1);
 
       handle->GyroConfig.DcBiasX = 0U;
@@ -315,7 +315,7 @@ static inline void Mpu9250_SetRawSensorReading(Mpu9250_SensorReading_t *const se
 {
   sensorReading->RawX = (sensorData[MPU9250_SENSORDATABYTE_0] << MPU9250_HIGH_BYTE_SHIFT) | sensorData[MPU9250_SENSORDATABYTE_1];
   sensorReading->RawY = (sensorData[MPU9250_SENSORDATABYTE_2] << MPU9250_HIGH_BYTE_SHIFT) | sensorData[MPU9250_SENSORDATABYTE_3];
-  sensorReading->RawZ = (sensorData[MPU9250_SENSORDATABYTE_3] << MPU9250_HIGH_BYTE_SHIFT) | sensorData[MPU9250_SENSORDATABYTE_5];
+  sensorReading->RawZ = (sensorData[MPU9250_SENSORDATABYTE_4] << MPU9250_HIGH_BYTE_SHIFT) | sensorData[MPU9250_SENSORDATABYTE_5];
 
   /* TODO remove after offsets have been properly set */
   sensorReading->RawX -= biasX;

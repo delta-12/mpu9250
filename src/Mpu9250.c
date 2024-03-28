@@ -72,37 +72,40 @@ bool Mpu9250_Init(Mpu9250_Handle_t *const handle, bool (*write)(const MPU9250_Re
     handle->Write = write;
     handle->Read = read;
 
-    /* TODO configure (see SMPLRT_DIV and CONFIG) */
-    uint8_t data = 0U;
-    handle->Write(MPU9250_SMPLRT_DIV, &data, MPU9250_SIZE_BYTES_1);
-    handle->Write(MPU9250_CONFIG, &data, MPU9250_SIZE_BYTES_1);
+    if (Mpu9250_WhoAmI(handle))
+    {
+      /* TODO configure (see SMPLRT_DIV and CONFIG) */
+      uint8_t data = 0U;
+      handle->Write(MPU9250_SMPLRT_DIV, &data, MPU9250_SIZE_BYTES_1);
+      handle->Write(MPU9250_CONFIG, &data, MPU9250_SIZE_BYTES_1);
 
-    /* TODO verify reset */
-    data = (MPU9250_BIT << MPU_H_RESET) & MPU9250_BYTE_MASK;
-    handle->Write(MPU9250_PWR_MGMT_1, &data, MPU9250_SIZE_BYTES_1);
+      /* TODO verify reset */
+      data = (MPU9250_BIT << MPU_H_RESET) & MPU9250_BYTE_MASK;
+      handle->Write(MPU9250_PWR_MGMT_1, &data, MPU9250_SIZE_BYTES_1);
 
-    handle->GyroConfig.DcBiasX = 0U;
-    handle->GyroConfig.DcBiasY = 0U;
-    handle->GyroConfig.DcBiasZ = 0U;
-    handle->GyroConfig.SelfTest = false;
-    handle->GyroConfig.Scale = MPU9250_GYROSCALE_250;
-    /* TODO Fchoice_b */
+      handle->GyroConfig.DcBiasX = 0U;
+      handle->GyroConfig.DcBiasY = 0U;
+      handle->GyroConfig.DcBiasZ = 0U;
+      handle->GyroConfig.SelfTest = false;
+      handle->GyroConfig.Scale = MPU9250_GYROSCALE_250;
+      /* TODO Fchoice_b */
 
-    handle->AccelConfig.DcBiasX = 0U;
-    handle->AccelConfig.DcBiasY = 0U;
-    handle->AccelConfig.DcBiasZ = 0U;
-    handle->AccelConfig.SelfTest = false;
-    handle->AccelConfig.Scale = MPU9250_ACCELSCALE_2;
-    /* TODO Fchoice_b */
-    /* TODO A_DLPFCFG */
-    /* TODO Low Power Accelerometer ODR Control */
-    /* TODO Wake-on Motion Threshold */
+      handle->AccelConfig.DcBiasX = 0U;
+      handle->AccelConfig.DcBiasY = 0U;
+      handle->AccelConfig.DcBiasZ = 0U;
+      handle->AccelConfig.SelfTest = false;
+      handle->AccelConfig.Scale = MPU9250_ACCELSCALE_2;
+      /* TODO Fchoice_b */
+      /* TODO A_DLPFCFG */
+      /* TODO Low Power Accelerometer ODR Control */
+      /* TODO Wake-on Motion Threshold */
 
-    /* TODO FIFO enable */
+      /* TODO FIFO enable */
 
-    /* TODO I2C master and slave control if applicable */
+      /* TODO I2C master and slave control if applicable */
 
-    init = (Mpu9250_ApplyGyroConfig(handle) && Mpu9250_ApplyAccelConfig(handle));
+      init = (Mpu9250_ApplyGyroConfig(handle) && Mpu9250_ApplyAccelConfig(handle));
+    }
   }
 
   return init;
